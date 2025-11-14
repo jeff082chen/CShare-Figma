@@ -13,7 +13,7 @@ interface DiscoverScreenProps {
 
 export function DiscoverScreen({ navigate, proposals }: DiscoverScreenProps) {
   const [activeFilter, setActiveFilter] = useState('All');
-  const filters = ['All', 'Tools', 'Appliances', 'Electronics'];
+  const filters = ['All', 'Groceries', 'Tools', 'Appliances', 'Electronics'];
 
   return (
     <div className="h-full flex flex-col bg-white">
