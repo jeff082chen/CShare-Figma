@@ -1,6 +1,7 @@
 import { ArrowLeft, MessageSquare, FileText } from 'lucide-react';
 import { Button } from './ui/button';
-import type { Screen, Proposal } from '../App';
+import type { Screen } from '../App';
+import type { Proposal } from '../types/proposal';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface SharedItemOverviewProps {
@@ -26,7 +27,7 @@ export function SharedItemOverview({ navigate, proposal }: SharedItemOverviewPro
         {/* Item Image */}
         <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
           <ImageWithFallback 
-            src="placeholder"
+            src={proposal.image || 'placeholder'}
             alt={proposal.name}
             className="w-full h-full object-cover"
           />
@@ -41,15 +42,28 @@ export function SharedItemOverview({ navigate, proposal }: SharedItemOverviewPro
           {/* Participants */}
           <div>
             <h3 className="text-gray-900 mb-3">Co-Owners</h3>
-            <div className="flex gap-3">
-              {Array.from({ length: proposal.maxParticipants }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <div className="w-14 h-14 rounded-full bg-gray-900 flex items-center justify-center text-white">
-                    {i === 0 ? 'S' : String.fromCharCode(65 + i)}
+            <div className="flex gap-3 flex-wrap">
+              {proposal.participantCodes.map((code) => {
+                const isYou = code.startsWith('Y');
+                return (
+                  <div key={code} className="flex flex-col items-center gap-2">
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white text-sm ${
+                      isYou ? 'bg-gray-900' : 'bg-gray-500'
+                    }`}>
+                      {code}
+                    </div>
+                    <span className="text-gray-600 text-sm">
+                      {isYou ? 'You' : `Member ${code}`}
+                    </span>
                   </div>
-                  <span className="text-gray-600 text-sm">
-                    {i === 0 ? 'Sarah' : `User ${String.fromCharCode(65 + i)}`}
-                  </span>
+                );
+              })}
+              {Array.from({ length: proposal.maxParticipants - proposal.participantCodes.length }).map((_, i) => (
+                <div key={`empty-${i}`} className="flex flex-col items-center gap-2">
+                  <div className="w-14 h-14 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
+                    +
+                  </div>
+                  <span className="text-gray-500 text-sm">Open spot</span>
                 </div>
               ))}
             </div>

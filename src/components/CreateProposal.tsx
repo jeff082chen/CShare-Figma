@@ -1,9 +1,12 @@
-import { ArrowLeft, Upload, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import type { Screen, ProposalInput } from '../App';
+import type { Screen } from '../App';
+import type { ProposalInput } from '../types/proposal';
 import { useState } from 'react';
+import { ImageWithFallback } from './figma/ImageWithFallback';
+import { PLACEHOLDER_IMAGE } from '../data/proposals';
 
 interface CreateProposalProps {
   navigate: (screen: Screen) => void;
@@ -71,13 +74,19 @@ export function CreateProposal({ navigate, onCreateProposal }: CreateProposalPro
             />
           </div>
 
-          {/* Photo Upload */}
+          {/* Photo Placeholder */}
           <div>
             <label className="block text-gray-700 mb-2">Item Photo</label>
-            <div className="w-full h-40 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
-              <Upload className="w-8 h-8 text-gray-400 mb-2" />
-              <span className="text-gray-500">Upload Photo</span>
+            <div className="w-full h-40 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+              <ImageWithFallback 
+                src={PLACEHOLDER_IMAGE}
+                alt="Placeholder preview"
+                className="w-full h-full object-cover"
+              />
             </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Image upload isn&apos;t available yet&mdash;we&apos;ll automatically use a placeholder.
+            </p>
           </div>
 
           {/* Total Price */}

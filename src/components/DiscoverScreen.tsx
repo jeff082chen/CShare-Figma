@@ -1,7 +1,8 @@
 import { MapPin } from 'lucide-react';
 import { NavigationBar } from './NavigationBar';
 import { Button } from './ui/button';
-import type { Screen, Proposal } from '../App';
+import type { Screen } from '../App';
+import type { Proposal } from '../types/proposal';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
 
@@ -44,7 +45,7 @@ export function DiscoverScreen({ navigate, proposals }: DiscoverScreenProps) {
       <div className="flex-1 overflow-y-auto pb-16">
         <div className="px-6 py-4 space-y-4">
           {proposals.map((proposal) => {
-            const spotsLeft = proposal.maxParticipants - proposal.participants;
+            const spotsLeft = proposal.maxParticipants - proposal.participantCodes.length;
             return (
               <div 
                 key={proposal.id}
@@ -53,7 +54,7 @@ export function DiscoverScreen({ navigate, proposals }: DiscoverScreenProps) {
                 <div className="flex gap-4 p-4">
                   <div className="w-24 h-24 bg-gray-100 rounded flex-shrink-0 flex items-center justify-center">
                     <ImageWithFallback 
-                      src="placeholder"
+                      src={proposal.image || 'placeholder'}
                       alt={proposal.name}
                       className="w-full h-full object-cover rounded"
                     />

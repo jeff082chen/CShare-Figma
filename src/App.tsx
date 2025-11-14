@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { HomeScreen } from './components/HomeScreen';
 import { CreateProposal } from './components/CreateProposal';
 import { ProposalDetail } from './components/ProposalDetail';
@@ -9,6 +9,9 @@ import { PurchaseComplete } from './components/PurchaseComplete';
 import { SharedItemOverview } from './components/SharedItemOverview';
 import { ProfileScreen } from './components/ProfileScreen';
 import { ChatList } from './components/ChatList';
+import type { Proposal, ProposalInput } from './types/proposal';
+import { PLACEHOLDER_IMAGE, initialCreatedProposals, initialDiscoverProposals, initialJoinedProposals } from './data/proposals';
+import { CURRENT_USER_CODE } from './constants/user';
 
 export type Screen = 
   | 'home' 
@@ -22,137 +25,112 @@ export type Screen =
   | 'shared-item' 
   | 'profile';
 
-export interface Proposal {
-  id: string;
-  name: string;
-  price: number;
-  participants: number;
-  maxParticipants: number;
-  location: string;
-  description: string;
-  image?: string;
-}
-
-export interface ProposalInput {
-  name: string;
-  price: number;
-  maxParticipants: number;
-  description: string;
-  location: string;
-}
-
-const initialProposals: Proposal[] = [
-  {
-    id: '1',
-    name: 'Portable Projector',
-    price: 180,
-    participants: 2,
-    maxParticipants: 5,
-    location: 'The House',
-    description: 'Easy to carry for movie nights or group presentations',
-    image: 'placeholder'
-  },
-  {
-    id: '2',
-    name: 'Air Fryer',
-    price: 80,
-    participants: 1,
-    maxParticipants: 3,
-    location: 'The House',
-    description: 'Perfect for late night cooking',
-    image: 'placeholder'
-  },
-  {
-    id: '3',
-    name: 'Vacuum Cleaner',
-    price: 150,
-    participants: 3,
-    maxParticipants: 5,
-    location: 'The House',
-    description: 'Keep our living spaces clean',
-    image: 'placeholder'
-  },
-  {
-    id: '4',
-    name: 'Blender',
-    price: 60,
-    participants: 1,
-    maxParticipants: 3,
-    location: 'The House',
-    description: 'Perfect for smoothies',
-    image: 'placeholder'
-  },
-  {
-    id: '5',
-    name: 'Gaming Console',
-    price: 400,
-    participants: 2,
-    maxParticipants: 5,
-    location: 'The House',
-    description: 'Share the latest console',
-    image: 'placeholder'
-  },
-  {
-    id: '6',
-    name: 'Printer',
-    price: 200,
-    participants: 3,
-    maxParticipants: 6,
-    location: 'The House',
-    description: 'Shared printing solution',
-    image: 'placeholder'
-  },
-  {
-    id: '7',
-    name: 'Coffee Maker',
-    price: 90,
-    participants: 2,
-    maxParticipants: 4,
-    location: 'The House',
-    description: 'Morning coffee for all',
-    image: 'placeholder'
-  }
-];
-
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
-  const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
+  const [createdProposals, setCreatedProposals] = useState<Proposal[]>(initialCreatedProposals);
+  const [joinedProposals, setJoinedProposals] = useState<Proposal[]>(initialJoinedProposals);
+  const [discoverProposals, setDiscoverProposals] = useState<Proposal[]>(initialDiscoverProposals);
 
   const navigate = (screen: Screen, proposal?: Proposal) => {
     setCurrentScreen(screen);
     setSelectedProposal(proposal ?? null);
   };
 
+  const userProposals = useMemo(() => {
+    const combined = [...createdProposals, ...joinedProposals];
+    const uniqueById = new Map(combined.map((proposal) => [proposal.id, proposal]));
+    return Array.from(uniqueById.values());
+  }, [createdProposals, joinedProposals]);
+
   const handleCreateProposal = (proposalFields: ProposalInput) => {
     const newProposal: Proposal = {
       id: `${Date.now()}`,
       name: proposalFields.name,
       price: proposalFields.price,
-      participants: 1,
       maxParticipants: proposalFields.maxParticipants,
       location: proposalFields.location,
       description: proposalFields.description,
-      image: 'placeholder'
+      image: PLACEHOLDER_IMAGE,
+      participantCodes: [CURRENT_USER_CODE],
     };
-    setProposals((prev) => [...prev, newProposal]);
+    setCreatedProposals((prev) => [...prev, newProposal]);
     navigate('home');
+  };
+
+  const handleJoinProposal = (proposal: Proposal) => {
+    if (proposal.participantCodes.includes(CURRENT_USER_CODE)) {
+      navigate('complete', proposal);
+      return;
+    }
+
+    if (proposal.participantCodes.length >= proposal.maxParticipants) {
+      navigate('proposal', proposal);
+      return;
+    }
+
+    const updatedProposal: Proposal = {
+      ...proposal,
+      participantCodes: [...proposal.participantCodes, CURRENT_USER_CODE],
+    };
+
+    setJoinedProposals((prev) => {
+      const index = prev.findIndex((p) => p.id === updatedProposal.id);
+      if (index !== -1) {
+        const copy = [...prev];
+        copy[index] = updatedProposal;
+        return copy;
+      }
+      return [...prev, updatedProposal];
+    });
+
+    setCreatedProposals((prev) =>
+      prev.map((p) => (p.id === updatedProposal.id ? updatedProposal : p))
+    );
+
+    setDiscoverProposals((prev) => prev.filter((p) => p.id !== updatedProposal.id));
+    navigate('complete', updatedProposal);
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md h-[812px] bg-white shadow-xl overflow-hidden relative">
-        {currentScreen === 'home' && <HomeScreen navigate={navigate} proposals={proposals} />}
+        {currentScreen === 'home' && (
+          <HomeScreen 
+            navigate={navigate} 
+            createdProposals={createdProposals} 
+            joinedProposals={joinedProposals} 
+          />
+        )}
         {currentScreen === 'create' && (
           <CreateProposal 
             navigate={navigate} 
             onCreateProposal={handleCreateProposal}
           />
         )}
-        {currentScreen === 'proposal' && <ProposalDetail navigate={navigate} proposal={selectedProposal} />}
-        {currentScreen === 'discover' && <DiscoverScreen navigate={navigate} proposals={proposals} />}
-        {currentScreen === 'join' && <JoinConfirmation navigate={navigate} proposal={selectedProposal} />}
-        {currentScreen === 'chat-list' && <ChatList navigate={navigate} />}
+        {currentScreen === 'proposal' && (
+          <ProposalDetail 
+            navigate={navigate} 
+            proposal={selectedProposal} 
+            canJoin={
+              selectedProposal 
+                ? (
+                    !selectedProposal.participantCodes.includes(CURRENT_USER_CODE) &&
+                    selectedProposal.participantCodes.length < selectedProposal.maxParticipants
+                  )
+                : false
+            }
+          />
+        )}
+        {currentScreen === 'discover' && <DiscoverScreen navigate={navigate} proposals={discoverProposals} />}
+        {currentScreen === 'join' && (
+          <JoinConfirmation 
+            navigate={navigate} 
+            proposal={selectedProposal} 
+            onConfirmJoin={handleJoinProposal}
+          />
+        )}
+        {currentScreen === 'chat-list' && <ChatList navigate={navigate} proposals={userProposals} />}
         {currentScreen === 'chat' && selectedProposal && (
           <GroupChat navigate={navigate} proposal={selectedProposal} />
         )}

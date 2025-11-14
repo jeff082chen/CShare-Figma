@@ -1,6 +1,7 @@
 import { CheckCircle } from 'lucide-react';
 import { Button } from './ui/button';
-import type { Screen, Proposal } from '../App';
+import type { Screen } from '../App';
+import type { Proposal } from '../types/proposal';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface PurchaseCompleteProps {
@@ -30,7 +31,7 @@ export function PurchaseComplete({ navigate, proposal }: PurchaseCompleteProps) 
           <div className="flex gap-4 p-4 border border-gray-200 rounded-lg">
             <div className="w-20 h-20 bg-gray-100 rounded flex-shrink-0">
               <ImageWithFallback 
-                src="placeholder"
+                src={proposal.image || 'placeholder'}
                 alt={proposal.name}
                 className="w-full h-full object-cover rounded"
               />
@@ -45,13 +46,23 @@ export function PurchaseComplete({ navigate, proposal }: PurchaseCompleteProps) 
         {/* Participants */}
         <div className="w-full max-w-sm mb-8">
           <h3 className="text-gray-900 mb-3">Participants</h3>
-          <div className="flex gap-2 justify-center">
-            {Array.from({ length: proposal.maxParticipants }).map((_, i) => (
+          <div className="flex gap-2 flex-wrap justify-center">
+            {proposal.participantCodes.map((code) => (
               <div 
-                key={i} 
-                className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center text-white"
+                key={code} 
+                className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-sm ${
+                  code.startsWith('Y') ? 'bg-gray-900' : 'bg-gray-500'
+                }`}
               >
-                {i === 0 ? 'S' : String.fromCharCode(65 + i)}
+                {code}
+              </div>
+            ))}
+            {Array.from({ length: proposal.maxParticipants - proposal.participantCodes.length }).map((_, i) => (
+              <div 
+                key={`empty-${i}`} 
+                className="w-12 h-12 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400"
+              >
+                +
               </div>
             ))}
           </div>

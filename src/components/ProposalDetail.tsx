@@ -1,18 +1,23 @@
 import { ArrowLeft, MessageSquare, Share2, MapPin, Users } from 'lucide-react';
 import { Button } from './ui/button';
-import type { Screen, Proposal } from '../App';
+import type { Screen } from '../App';
+import type { Proposal } from '../types/proposal';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { CURRENT_USER_CODE } from '../constants/user';
 
 interface ProposalDetailProps {
   navigate: (screen: Screen, proposal?: Proposal) => void;
   proposal: Proposal | null;
+  canJoin: boolean;
 }
 
-export function ProposalDetail({ navigate, proposal }: ProposalDetailProps) {
+export function ProposalDetail({ navigate, proposal, canJoin }: ProposalDetailProps) {
   if (!proposal) return null;
 
   const pricePerPerson = (proposal.price / proposal.maxParticipants).toFixed(2);
-  const spotsLeft = proposal.maxParticipants - proposal.participants;
+  const participantCount = proposal.participantCodes.length;
+  const spotsLeft = proposal.maxParticipants - participantCount;
+  const isCurrentUser = proposal.participantCodes.includes(CURRENT_USER_CODE);
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -29,7 +34,7 @@ export function ProposalDetail({ navigate, proposal }: ProposalDetailProps) {
         {/* Item Image */}
         <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
           <ImageWithFallback 
-            src="placeholder"
+            src={proposal.image || 'placeholder'}
             alt={proposal.name}
             className="w-full h-full object-cover"
           />
@@ -50,12 +55,14 @@ export function ProposalDetail({ navigate, proposal }: ProposalDetailProps) {
           {/* Progress */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-700">{proposal.participants} / {proposal.maxParticipants} participants joined</span>
+              <span className="text-gray-700">
+                {participantCount} / {proposal.maxParticipants} participants joined
+              </span>
             </div>
             <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gray-900"
-                style={{ width: `${(proposal.participants / proposal.maxParticipants) * 100}%` }}
+                style={{ width: `${(participantCount / proposal.maxParticipants) * 100}%` }}
               />
             </div>
             <span className="text-gray-500 mt-1 block">{spotsLeft} spots remaining</span>
@@ -64,12 +71,21 @@ export function ProposalDetail({ navigate, proposal }: ProposalDetailProps) {
           {/* Participants */}
           <div>
             <h3 className="text-gray-900 mb-3">Participants</h3>
-            <div className="flex gap-2">
-              {Array.from({ length: proposal.participants }).map((_, i) => (
-                <div key={i} className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center text-white">
-                  {i === 0 ? 'C' : i + 1}
-                </div>
-              ))}
+            <div className="flex gap-2 flex-wrap">
+              {proposal.participantCodes.map((code) => {
+                const isYou = code.startsWith('Y');
+                return (
+                  <div 
+                    key={code} 
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-sm ${
+                      isYou ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900 border border-gray-200'
+                    }`}
+                    title={isYou ? 'You' : `Member ${code}`}
+                  >
+                    {code}
+                  </div>
+                );
+              })}
               {Array.from({ length: spotsLeft }).map((_, i) => (
                 <div key={`empty-${i}`} className="w-12 h-12 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center">
                   <Users className="w-5 h-5 text-gray-300" />
@@ -80,12 +96,18 @@ export function ProposalDetail({ navigate, proposal }: ProposalDetailProps) {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <Button 
-              onClick={() => navigate('join', proposal)}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-6"
-            >
-              Join This Purchase
-            </Button>
+            {canJoin ? (
+              <Button 
+                onClick={() => navigate('join', proposal)}
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-6"
+              >
+                Join This Purchase
+              </Button>
+            ) : (
+              <div className="w-full p-4 border border-gray-200 rounded-lg text-sm text-gray-600 bg-gray-50">
+                {isCurrentUser ? "You're already part of this shared purchase." : 'This group is already full.'}
+              </div>
+            )}
             
             <div className="grid grid-cols-2 gap-3">
               <Button 
@@ -94,7 +116,7 @@ export function ProposalDetail({ navigate, proposal }: ProposalDetailProps) {
                 className="py-6"
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
-                Message Creator
+                Message
               </Button>
               <Button 
                 variant="outline"

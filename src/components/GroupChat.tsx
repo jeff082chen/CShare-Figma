@@ -1,7 +1,8 @@
 import { ArrowLeft, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import type { Screen, Proposal } from '../App';
+import type { Screen } from '../App';
+import type { Proposal } from '../types/proposal';
 import { useState } from 'react';
 
 interface GroupChatProps {
@@ -64,7 +65,7 @@ export function GroupChat({ navigate, proposal }: GroupChatProps) {
           <div className="flex items-center gap-4 text-gray-600">
             <span>${pricePerPerson}/person</span>
             <span>・</span>
-            <span>{proposal.participants}/{proposal.maxParticipants} joined</span>
+            <span>{proposal.participantCodes.length}/{proposal.maxParticipants} joined</span>
           </div>
         </div>
       </div>
