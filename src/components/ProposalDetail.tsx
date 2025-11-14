@@ -9,21 +9,22 @@ interface ProposalDetailProps {
   navigate: (screen: Screen, proposal?: Proposal) => void;
   proposal: Proposal | null;
   canJoin: boolean;
+  goBack: () => void;
 }
 
-export function ProposalDetail({ navigate, proposal, canJoin }: ProposalDetailProps) {
+export function ProposalDetail({ navigate, proposal, canJoin, goBack }: ProposalDetailProps) {
   if (!proposal) return null;
 
   const pricePerPerson = (proposal.price / proposal.maxParticipants).toFixed(2);
   const participantCount = proposal.participantCodes.length;
   const spotsLeft = proposal.maxParticipants - participantCount;
-  const isCurrentUser = proposal.participantCodes.includes(CURRENT_USER_CODE);
+  const isParticipant = proposal.participantCodes.includes(CURRENT_USER_CODE);
 
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-        <button onClick={() => navigate('home')}>
+        <button onClick={goBack}>
           <ArrowLeft className="w-6 h-6 text-gray-900" />
         </button>
         <h1 className="text-gray-900">Proposal Details</h1>
@@ -105,15 +106,21 @@ export function ProposalDetail({ navigate, proposal, canJoin }: ProposalDetailPr
               </Button>
             ) : (
               <div className="w-full p-4 border border-gray-200 rounded-lg text-sm text-gray-600 bg-gray-50">
-                {isCurrentUser ? "You're already part of this shared purchase." : 'This group is already full.'}
+                {isParticipant ? "You're already part of this shared purchase." : 'This group is already full.'}
               </div>
             )}
             
             <div className="grid grid-cols-2 gap-3">
               <Button 
-                onClick={() => navigate('chat', proposal)}
+                onClick={() => {
+                  if (isParticipant) {
+                    navigate('chat', proposal);
+                  }
+                }}
                 variant="outline"
                 className="py-6"
+                disabled={!isParticipant}
+                title={isParticipant ? 'Message group members' : 'Join this purchase to message the group'}
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
                 Message
@@ -126,6 +133,11 @@ export function ProposalDetail({ navigate, proposal, canJoin }: ProposalDetailPr
                 Share
               </Button>
             </div>
+            {!isParticipant && (
+              <p className="text-xs text-gray-500 text-center">
+                Join this purchase to start chatting with other participants.
+              </p>
+            )}
           </div>
 
           {/* Description */}

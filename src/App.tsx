@@ -25,16 +25,60 @@ export type Screen =
   | 'shared-item' 
   | 'profile';
 
+type ScreenHistoryEntry = {
+  screen: Screen;
+  proposal: Proposal | null;
+};
+
+const TRANSIENT_SCREENS: Screen[] = ['join', 'complete'];
+
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
-  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const [history, setHistory] = useState<ScreenHistoryEntry[]>([
+    { screen: 'home', proposal: null },
+  ]);
   const [createdProposals, setCreatedProposals] = useState<Proposal[]>(initialCreatedProposals);
   const [joinedProposals, setJoinedProposals] = useState<Proposal[]>(initialJoinedProposals);
   const [discoverProposals, setDiscoverProposals] = useState<Proposal[]>(initialDiscoverProposals);
 
-  const navigate = (screen: Screen, proposal?: Proposal) => {
-    setCurrentScreen(screen);
-    setSelectedProposal(proposal ?? null);
+  const currentState = history[history.length - 1];
+  const currentScreen = currentState.screen;
+  const selectedProposal = currentState.proposal;
+
+  const hasJoinedProposal = (proposal?: Proposal | null) => {
+    if (!proposal) return false;
+    return proposal.participantCodes.includes(CURRENT_USER_CODE);
+  };
+
+  const navigate = (screen: Screen, proposal?: Proposal, options?: { replace?: boolean }) => {
+    if (screen === 'chat' && !hasJoinedProposal(proposal)) {
+      return;
+    }
+    setHistory((prev) => {
+      const nextEntry = { screen, proposal: proposal ?? null };
+
+      if (options?.replace) {
+        if (prev.length === 0) {
+          return [nextEntry];
+        }
+        return [...prev.slice(0, -1), nextEntry];
+      }
+
+      const lastEntry = prev[prev.length - 1];
+      const shouldDropLast =
+        lastEntry && TRANSIENT_SCREENS.includes(lastEntry.screen) && lastEntry.screen !== screen;
+
+      const trimmedHistory = shouldDropLast ? prev.slice(0, -1) : prev;
+      return [...trimmedHistory, nextEntry];
+    });
+  };
+
+  const goBack = () => {
+    setHistory((prev) => {
+      if (prev.length <= 1) {
+        return prev;
+      }
+      return prev.slice(0, -1);
+    });
   };
 
   const userProposals = useMemo(() => {
@@ -104,13 +148,14 @@ export default function App() {
         )}
         {currentScreen === 'create' && (
           <CreateProposal 
-            navigate={navigate} 
             onCreateProposal={handleCreateProposal}
+            goBack={goBack}
           />
         )}
         {currentScreen === 'proposal' && (
           <ProposalDetail 
             navigate={navigate} 
+            goBack={goBack}
             proposal={selectedProposal} 
             canJoin={
               selectedProposal 
@@ -128,14 +173,17 @@ export default function App() {
             navigate={navigate} 
             proposal={selectedProposal} 
             onConfirmJoin={handleJoinProposal}
+            goBack={goBack}
           />
         )}
         {currentScreen === 'chat-list' && <ChatList navigate={navigate} proposals={userProposals} />}
-        {currentScreen === 'chat' && selectedProposal && (
-          <GroupChat navigate={navigate} proposal={selectedProposal} />
+        {currentScreen === 'chat' && selectedProposal && hasJoinedProposal(selectedProposal) && (
+          <GroupChat goBack={goBack} proposal={selectedProposal} />
         )}
         {currentScreen === 'complete' && <PurchaseComplete navigate={navigate} proposal={selectedProposal} />}
-        {currentScreen === 'shared-item' && <SharedItemOverview navigate={navigate} proposal={selectedProposal} />}
+        {currentScreen === 'shared-item' && (
+          <SharedItemOverview navigate={navigate} goBack={goBack} proposal={selectedProposal} />
+        )}
         {currentScreen === 'profile' && <ProfileScreen navigate={navigate} />}
       </div>
     </div>

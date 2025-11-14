@@ -5,10 +5,10 @@ export const PLACEHOLDER_IMAGE = 'placeholder';
 export const initialCreatedProposals: Proposal[] = [
   {
     id: 'c-1',
-    name: 'Shared DSLR Camera',
+    name: 'DSLR Camera',
     price: 520,
     maxParticipants: 4,
-    location: 'Media Lab Locker',
+    location: 'The House',
     description: 'Split the cost of a Canon DSLR for weekend shoots and events.',
     image: PLACEHOLDER_IMAGE,
     participantCodes: ['YJ'],

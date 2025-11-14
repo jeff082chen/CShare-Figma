@@ -1,13 +1,12 @@
 import { ArrowLeft, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import type { Screen } from '../App';
 import type { Proposal } from '../types/proposal';
 import { useState } from 'react';
 
 interface GroupChatProps {
-  navigate: (screen: Screen, proposal?: Proposal) => void;
   proposal: Proposal | null;
+  goBack: () => void;
 }
 
 const mockMessages = [
@@ -41,7 +40,7 @@ const mockMessages = [
   }
 ];
 
-export function GroupChat({ navigate, proposal }: GroupChatProps) {
+export function GroupChat({ proposal, goBack }: GroupChatProps) {
   const [message, setMessage] = useState('');
   
   if (!proposal) return null;
@@ -53,7 +52,7 @@ export function GroupChat({ navigate, proposal }: GroupChatProps) {
       {/* Header */}
       <div className="border-b border-gray-200">
         <div className="px-6 py-4 flex items-center gap-3">
-          <button onClick={() => navigate('home')}>
+          <button onClick={goBack}>
             <ArrowLeft className="w-6 h-6 text-gray-900" />
           </button>
           <h1 className="text-gray-900 flex-1">Shared Purchase Group</h1>

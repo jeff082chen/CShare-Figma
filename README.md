@@ -9,3 +9,7 @@
 
   Run `npm run dev` to start the development server.
   
+  ## TODO
+  1. The workflow after "Join This Purchase" is weird.
+  2. Filter in Discover page.
+  3. "My Item" in Profile.

@@ -7,16 +7,17 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 interface SharedItemOverviewProps {
   navigate: (screen: Screen, proposal?: Proposal) => void;
   proposal: Proposal | null;
+  goBack: () => void;
 }
 
-export function SharedItemOverview({ navigate, proposal }: SharedItemOverviewProps) {
+export function SharedItemOverview({ navigate, proposal, goBack }: SharedItemOverviewProps) {
   if (!proposal) return null;
 
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-        <button onClick={() => navigate('home')}>
+        <button onClick={goBack}>
           <ArrowLeft className="w-6 h-6 text-gray-900" />
         </button>
         <h1 className="text-gray-900">Shared Item</h1>

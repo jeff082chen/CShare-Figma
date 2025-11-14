@@ -2,18 +2,17 @@ import { ArrowLeft, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import type { Screen } from '../App';
 import type { ProposalInput } from '../types/proposal';
 import { useState } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { PLACEHOLDER_IMAGE } from '../data/proposals';
 
 interface CreateProposalProps {
-  navigate: (screen: Screen) => void;
   onCreateProposal: (proposal: ProposalInput) => void;
+  goBack: () => void;
 }
 
-export function CreateProposal({ navigate, onCreateProposal }: CreateProposalProps) {
+export function CreateProposal({ onCreateProposal, goBack }: CreateProposalProps) {
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
   const [participants, setParticipants] = useState('');
@@ -55,7 +54,7 @@ export function CreateProposal({ navigate, onCreateProposal }: CreateProposalPro
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-        <button onClick={() => navigate('home')}>
+        <button onClick={goBack}>
           <ArrowLeft className="w-6 h-6 text-gray-900" />
         </button>
         <h1 className="text-gray-900">Create Shared Purchase</h1>

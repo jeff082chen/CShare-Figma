@@ -64,7 +64,7 @@ export function DiscoverScreen({ navigate, proposals }: DiscoverScreenProps) {
                     <div>
                       <h3 className="text-gray-900 mb-1">{proposal.name}</h3>
                       <p className="text-gray-600 mb-2">
-                        {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} left
+                        {spotsLeft} / {proposal.maxParticipants} {spotsLeft === 1 ? 'spot' : 'spots'} left
                       </p>
                     </div>
                     

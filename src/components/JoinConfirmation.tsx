@@ -7,9 +7,10 @@ interface JoinConfirmationProps {
   navigate: (screen: Screen, proposal?: Proposal) => void;
   proposal: Proposal | null;
   onConfirmJoin: (proposal: Proposal) => void;
+  goBack: () => void;
 }
 
-export function JoinConfirmation({ navigate, proposal, onConfirmJoin }: JoinConfirmationProps) {
+export function JoinConfirmation({ navigate, proposal, onConfirmJoin, goBack }: JoinConfirmationProps) {
   if (!proposal) return null;
 
   const pricePerPerson = (proposal.price / proposal.maxParticipants).toFixed(2);
@@ -63,7 +64,7 @@ export function JoinConfirmation({ navigate, proposal, onConfirmJoin }: JoinConf
           </Button>
           
           <Button 
-            onClick={() => navigate('proposal', proposal)}
+            onClick={goBack}
             variant="outline"
             className="w-full py-6"
           >
